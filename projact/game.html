@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Arena - The Shadow File</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen flex flex-col justify-between relative selection:bg-cyan-500 selection:text-black">
+    <div class="fixed inset-0 crt-overlay z-50"></div>
+
+    <!-- MAIN GAME SCREEN -->
+    <div id="screen-game" class="flex-1 flex flex-col relative overflow-hidden">
+        <header class="bg-slate-900/90 border-b border-cyan-500/30 p-3 px-4 flex items-center justify-between z-20">
+            <div class="flex items-center space-x-3">
+                <div class="text-cyan-400 font-bold tracking-wider flex items-center">
+                    <i class="fa-solid fa-mask mr-2"></i> STEP <span id="current-step-num" class="text-xl ml-1 text-white">1</span> / 10
+                </div>
+                <div class="text-xs text-slate-400 hidden sm:block border-l border-slate-700 pl-3">
+                    คดี: <span id="step-title" class="text-cyan-300">ตู้ล็อกเกอร์วิกเตอร์</span>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <div class="mono text-cyan-400 text-sm bg-black/50 px-3 py-1 rounded border border-cyan-500/30">
+                    <i class="fa-solid fa-stopwatch mr-1"></i> <span id="game-timer">00:00</span>
+                </div>
+                <button onclick="toggleEvidenceModal()" class="cyber-btn px-3 py-1 text-xs rounded flex items-center space-x-1" title="เปิดแฟ้มเอกสาร">
+                    <i class="fa-solid fa-folder-open text-amber-400"></i>
+                    <span class="hidden md:inline">แฟ้มเอกสาร</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 grid grid-cols-12 gap-4 p-4 max-w-7xl w-full mx-auto relative z-10">
+            <!-- Danger Alert Level Bar -->
+            <div class="col-span-3 md:col-span-2 bg-slate-900/80 border border-cyan-500/30 rounded p-3 flex flex-col items-center justify-between">
+                <div class="text-center w-full">
+                    <p class="text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-tighter">DANGER ALERT</p>
+                    <p class="text-xs text-red-400 font-bold mb-2">LEVEL <span id="danger-level-txt">0</span>/5</p>
+                </div>
+
+                <div class="w-full flex-1 flex flex-col-reverse justify-between py-2 space-y-1 space-y-reverse max-h-[250px]">
+                    <div id="danger-5" class="w-full h-8 bg-slate-800 rounded border border-slate-700 flex items-center justify-center text-[10px] text-slate-500 font-bold transition-all">5 (CRITICAL)</div>
+                    <div id="danger-4" class="w-full h-8 bg-slate-800 rounded border border-slate-700 flex items-center justify-center text-[10px] text-slate-500 font-bold transition-all">4</div>
+                    <div id="danger-3" class="w-full h-8 bg-slate-800 rounded border border-slate-700 flex items-center justify-center text-[10px] text-slate-500 font-bold transition-all">3</div>
+                    <div id="danger-2" class="w-full h-8 bg-slate-800 rounded border border-slate-700 flex items-center justify-center text-[10px] text-slate-500 font-bold transition-all">2</div>
+                    <div id="danger-1" class="w-full h-8 bg-slate-800 rounded border border-slate-700 flex items-center justify-center text-[10px] text-slate-500 font-bold transition-all">1 (SAFE)</div>
+                </div>
+
+                <div class="text-center text-[10px] text-slate-500 mt-2">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> ตอบผิดเพิ่ม 1
+                </div>
+            </div>
+
+            <!-- Puzzle Arena -->
+            <div class="col-span-9 md:col-span-10 bg-slate-900/90 border border-cyan-500/30 rounded p-4 md:p-6 flex flex-col justify-between relative overflow-hidden" id="puzzle-container">
+                <div id="disruption-layer" class="absolute inset-0 bg-red-950/40 pointer-events-none hidden z-20 flex items-center justify-center">
+                    <p class="text-red-400 font-bold text-2xl tracking-widest animate-pulse"><i class="fa-solid fa-bug"></i> SYSTEM CORRUPTED</p>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 id="puzzle-heading" class="text-lg md:text-xl font-bold text-cyan-300">ปริศนา</h3>
+                        <span id="puzzle-badge" class="bg-cyan-950 text-cyan-400 border border-cyan-500/40 text-[10px] px-2 py-0.5 rounded mono">DECODE</span>
+                    </div>
+                    <p id="puzzle-desc" class="text-sm text-slate-300 mb-6 leading-relaxed">คำอธิบายโจทย์</p>
+                </div>
+
+                <div id="puzzle-interactive" class="my-auto py-4 flex flex-col items-center justify-center"></div>
+
+                <div class="pt-4 border-t border-slate-800 flex justify-between items-center mt-4">
+                    <button onclick="toggleEvidenceModal()" class="text-xs text-amber-400 hover:underline"><i class="fa-solid fa-lightbulb mr-1"></i>ดูคำใบ้ในแฟ้ม</button>
+                    <button onclick="submitAnswer()" class="cyber-btn px-6 py-2 rounded text-sm font-bold">ส่งคำตอบ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BLACKOUT SCREEN -->
+    <div id="blackout-screen" class="fixed inset-0 bg-black z-50 hidden flex flex-col items-center justify-center text-center p-4">
+        <i class="fa-solid fa-power-off text-6xl text-red-600 mb-4 animate-bounce"></i>
+        <h2 class="text-2xl font-bold text-red-500 mb-2 tracking-widest">SYSTEM CRITICAL FAILURE</h2>
+        <p class="text-slate-400 text-sm mb-4">ระดับความอันตรายสูงสุด ระบบชัตดาวน์และรีเซ็ตเริ่มใหม่...</p>
+        <div class="text-3xl text-red-500 font-mono font-bold" id="blackout-timer">5</div>
+    </div>
+
+    <!-- 📂 EVIDENCE FOLDER EXPLORER MODAL (ดีไซน์แบบ Folder Grid ตามตัวอย่าง) -->
+    <div id="evidence-modal" class="fixed inset-0 bg-black/80 z-40 hidden flex items-center justify-center p-4">
+        <div class="cyber-border bg-slate-950 max-w-4xl w-full rounded-lg overflow-hidden flex flex-col h-[75vh] shadow-[0_0_25px_rgba(0,255,204,0.2)]">
+            <!-- Windows Explorer Header -->
+            <div class="bg-slate-900 p-3 px-4 flex justify-between items-center border-b border-cyan-500/30">
+                <span class="text-sm font-bold text-cyan-300 flex items-center">
+                    <i class="fa-solid fa-hard-drive mr-2 text-cyan-400"></i> C:\SHADOW_FILE\EVIDENCE_DATABASE
+                </span>
+                <button onclick="toggleEvidenceModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Folder Grid Content Area -->
+            <div class="p-6 overflow-y-auto flex-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 content-start bg-[#0b101b]" id="evidence-folder-grid">
+                <!-- โฟลเดอร์จะถูกสร้างด้วย JavaScript ตรงนี้ -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 📄 FILE VIEWER MODAL (หน้าต่างแสดงเนื้อหาเมื่อกดดับเบิลคลิกเปิดโฟลเดอร์) -->
+    <div id="file-viewer-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="cyber-border bg-slate-900 max-w-lg w-full rounded-lg overflow-hidden flex flex-col shadow-2xl">
+            <div class="bg-slate-800 p-2.5 px-4 flex justify-between items-center border-b border-cyan-500/30">
+                <span id="viewer-title" class="text-xs font-bold text-amber-400 mono flex items-center">
+                    <i class="fa-solid fa-file-lines mr-2"></i> document.txt
+                </span>
+                <button onclick="closeFileViewer()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 text-sm text-slate-200 mono space-y-4">
+                <div class="bg-black/40 p-4 rounded border border-cyan-500/20 leading-relaxed" id="viewer-content">
+                    <!-- เนื้อหาเอกสาร -->
+                </div>
+                <button onclick="closeFileViewer()" class="cyber-btn w-full py-2 rounded text-xs font-bold uppercase tracking-wider">ปิดแฟ้มเอกสาร</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VICTORY STATS SCREEN -->
+    <div id="screen-victory" class="fixed inset-0 bg-slate-950 z-50 hidden flex flex-col items-center justify-center p-4">
+        <div class="cyber-border bg-slate-900 p-8 rounded-lg max-w-lg w-full text-center">
+            <div class="text-5xl text-amber-400 mb-3"><i class="fa-solid fa-trophy"></i></div>
+            <h2 class="text-2xl font-bold text-cyan-400 tracking-wider mb-1">ปิดคดีสำเร็จ!</h2>
+            <p class="text-xs text-slate-400 mb-6">สรุปสถิติผลการสืบสวน</p>
+
+            <div class="grid grid-cols-2 gap-3 mb-6 text-left mono text-xs">
+                <div class="bg-black/50 p-3 rounded border border-cyan-500/20">
+                    <p class="text-slate-400">เวลาที่ใช้รวม:</p>
+                    <p id="stat-time" class="text-lg text-cyan-300 font-bold">00:00</p>
+                </div>
+                <div class="bg-black/50 p-3 rounded border border-cyan-500/20">
+                    <p class="text-slate-400">จำนวนครั้งที่ตอบผิด:</p>
+                    <p id="stat-mistakes" class="text-lg text-red-400 font-bold">0 ครั้ง</p>
+                </div>
+                <div class="bg-black/50 p-3 rounded border border-cyan-500/20">
+                    <p class="text-slate-400">ระดับ Danger สูงสุด:</p>
+                    <p id="stat-danger" class="text-lg text-amber-400 font-bold">Level 0</p>
+                </div>
+                <div class="bg-black/50 p-3 rounded border border-cyan-500/20">
+                    <p class="text-slate-400">เกรดประเมินนักสืบ:</p>
+                    <p id="stat-rank" class="text-lg text-emerald-400 font-bold">MASTER</p>
+                </div>
+            </div>
+
+            <a href="login.html" class="cyber-btn w-full py-3 rounded font-bold tracking-wider block text-center">กลับสู่หน้าหลัก</a>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
