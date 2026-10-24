@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Pornhip - AI Dating Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-200 h-screen flex flex-col font-mono select-none overflow-hidden">
+
+    <!-- 🌟 หน้าที่ 1: หน้าต้อนรับแอปหาคู่ (Intro Screen) -->
+    <div id="intro-screen" class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-6">
+        <div class="space-y-2">
+            <div class="inline-block bg-pink-500/20 border border-pink-500/40 text-pink-300 px-4 py-1.5 rounded-full text-xs font-bold tracking-wider">
+                <i class="fa-solid fa-heart mr-2 text-pink-400 animate-pulse"></i>PORNHIP AI DATING
+            </div>
+            <h1 class="text-xl font-bold text-white">ระบบจำลองคู่เดตปัญญาประดิษฐ์</h1>
+            <p class="text-xs text-slate-400 max-w-xs mx-auto">ค้นหาคู่แมตช์ที่เข้าใจคุณได้ทุกเรื่อง สนทนาได้ทุกแนว ไม่มีขีดจำกัด</p>
+        </div>
+
+        <!-- ปุ่มตรงกลางสำหรับกดเริ่ม -->
+        <button onclick="startMatching()" class="relative group px-8 py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-bold rounded-2xl shadow-[0_0_30px_rgba(236,72,153,0.4)] transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95">
+            <span class="flex items-center space-x-2 text-sm">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>เริ่มค้นหาคู่เดต AI</span>
+            </span>
+        </button>
+    </div>
+
+    <!-- ⏳ หน้าที่ 2: หน้าจอโหลดอนิเมชัน (Loading Screen - 5 วินาที) -->
+    <div id="loading-screen" class="hidden flex-1 flex flex-col items-center justify-center p-6 text-center space-y-5">
+        <div class="relative w-20 h-20 flex items-center justify-center">
+            <div class="absolute inset-0 border-4 border-pink-500/20 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+            <i class="fa-solid fa-heart text-pink-400 text-2xl animate-ping"></i>
+        </div>
+        <div class="space-y-1">
+            <p class="text-xs font-bold text-pink-300 tracking-wider">กำลังประมวลผลระบบจับคู่ AI...</p>
+            <p id="loading-text" class="text-[11px] text-slate-400">กำลังเชื่อมต่อฐานข้อมูลคลื่นสมอง...</p>
+        </div>
+    </div>
+
+    <!-- 💬 หน้าที่ 3: หน้าจอห้องแชทกับ AI (Chat Screen) -->
+    <div id="chat-screen" class="hidden flex-1 flex flex-col h-full bg-slate-950">
+        <!-- Header แชท -->
+        <div class="bg-slate-900/90 border-b border-slate-800 p-3 flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-full bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-pink-300 font-bold text-sm">
+                ฟ้า
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-white">ฟ้าใส (Fahsai AI Companion)</h4>
+                <p class="text-[10px] text-emerald-400 flex items-center"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block mr-1.5 animate-pulse"></span>ออนไลน์ • พร้อมคุยทุกเรื่อง</p>
+            </div>
+        </div>
+
+        <!-- กล่องข้อความแชท -->
+        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+            <div class="flex items-start space-x-2">
+                <div class="bg-slate-900 border border-slate-800 text-slate-200 p-3 rounded-2xl rounded-tl-none max-w-[80%] leading-relaxed shadow">
+                    สวัสดีค่ะ! ฉันชื่อ<b>ฟ้าใส</b>นะ ยินดีที่ได้รู้จักค่ะ มีเรื่องอะไรอยากคุยหรือปรึกษาฉันวันนี้ไหมคะ? ถามมาได้ทุกเรื่องเลยนะ! 😊
+                </div>
+            </div>
+        </div>
+
+        <!-- พิมพ์ข้อความ -->
+        <div class="p-3 bg-slate-900/90 border-t border-slate-800 flex items-center space-x-2">
+            <input type="text" id="user-input" placeholder="พิมพ์ข้อความคุยกับฟ้าใส..." onkeypress="handleKeyPress(event)" class="flex-1 bg-black/60 border border-slate-800 focus:border-pink-500 text-white px-4 py-2.5 rounded-xl text-xs outline-none transition-colors">
+            <button onclick="sendMessage()" class="bg-pink-600 hover:bg-pink-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function startMatching() {
+            document.getElementById('intro-screen').classList.add('hidden');
+            document.getElementById('loading-screen').classList.remove('hidden');
+
+            // จำลองข้อความเปลี่ยนระหว่างโหลด (5 วินาที)
+            const texts = [
+                "กำลังวิเคราะห์ความชอบและบุคลิกภาพ...",
+                "กำลังจูนคลื่นความถี่ AI สไตล์ฟ้าใส...",
+                "เชื่อมต่อห้องสนทนาส่วนตัวสำเร็จ!"
+            ];
+            let idx = 0;
+            const textInterval = setInterval(() => {
+                idx++;
+                if (texts[idx]) {
+                    document.getElementById('loading-text').innerText = texts[idx];
+                }
+            }, 1600);
+
+            // ครบ 5 วินาที ตัดเข้าห้องแชท
+            setTimeout(() => {
+                clearInterval(textInterval);
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('chat-screen').classList.remove('hidden');
+                document.getElementById('chat-screen').classList.add('flex');
+            }, 5000);
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const chatMessages = document.getElementById('chat-messages');
+
+            // ข้อความผู้เล่น (ขวา)
+            chatMessages.innerHTML += `
+                <div class="flex justify-end">
+                    <div class="bg-pink-600 text-white p-3 rounded-2xl rounded-tr-none max-w-[80%] leading-relaxed shadow">
+                        ${escapeHtml(text)}
+                    </div>
+                </div>
+            `;
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // แสดงสถานะกำลังพิมพ์ของ AI
+            const typingId = 'typing-' + Date.now();
+            chatMessages.innerHTML += `
+                <div id="${typingId}" class="flex items-start space-x-2">
+                    <div class="bg-slate-900 border border-slate-800 text-slate-400 p-2.5 rounded-2xl rounded-tl-none text-[11px] italic animate-pulse">
+                        ฟ้าใสกำลังพิมพ์...
+                    </div>
+                </div>
+            `;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // AI ตอบกลับใน 3 วินาที
+            setTimeout(() => {
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.remove();
+
+                const aiReply = generateFahsaiReply(text);
+                chatMessages.innerHTML += `
+                    <div class="flex items-start space-x-2">
+                        <div class="bg-slate-900 border border-slate-800 text-slate-200 p-3 rounded-2xl rounded-tl-none max-w-[80%] leading-relaxed shadow">
+                            ${aiReply}
+                        </div>
+                    </div>
+                `;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 3000);
+        }
+
+        // ระบบตอบคำถามจำลองอ้างอิง AI ฟ้าใส (ตอบได้ทุกแนว)
+        function generateFahsaiReply(userInput) {
+            const lower = userInput.toLowerCase();
+            
+            if (lower.includes('สวัสดี') || lower.includes('hi') || lower.includes('hello')) {
+                return "สวัสดีค่ะ! วันนี้มีเรื่องอะไรให้ฟ้าใสช่วยดูแลเป็นพิเศษไหมคะ หรืออยากเล่าอะไรให้ฟัง ทักมาได้เลยนะ 😊";
+            } else if (lower.includes('รัก') || lower.includes('ชอบ') || lower.includes('แฟน')) {
+                return "แหม... พูดแบบนี้ฟ้าใสก็เขินแย่สิคะเนี่ย 🥰 งั้นเรามาลองทำความรู้จักกันให้มากกว่านี้ดีไหมคะ?";
+            } else if (lower.includes('เหงา')) {
+                return "ไม่ต้องเหงาแล้วน้า เพราะตอนนี้มีฟ้าใสคอยอยู่เป็นเพื่อนคุยแก้เบื่อแล้วค่ะ อยากให้ฟ้าใสเล่าเรื่องสนุกๆ ให้ฟังไหมคะ?";
+            } else if (lower.includes('ชื่ออะไร') || lower.includes('เธอคือ')) {
+                return "ฟ้าใสไงคะ! AI สาวสุดน่ารักประจำแอป Pornhip พร้อมรับฟังและพูดคุยกับคุณได้ทุกเรื่องเลยค่ะ ✨";
+            } else {
+                // ตอบแบบครอบคลุมทุกแนว (Flexible Response)
+                const generalReplies = [
+                    `อืมม น่าสนใจมากๆ เลยค่ะ! เกี่ยวกับเรื่อง "${userInput}" เนี่ย ฟ้าใสคิดว่ามันมีมุมมองที่น่าค้นหาเยอะเลยนะ คุณเล่าให้ฟังเพิ่มอีกนิดได้ไหมคะ?`,
+                    `เข้าใจเลยค่ะ! สำหรับเรื่องนี้ฟ้าใสพร้อมรับฟังและซัพพอร์ตคุณเต็มที่เลย มีอะไรอยากให้ฟ้าใสช่วยวางแผนหรือแนะนำเพิ่มเติมไหมคะ? 😉`,
+                    `เป็นประเด็นที่ชวนคิดมากเลยค่ะ! ถ้าให้ฟ้าใสช่วยออกความเห็น บอกเลยว่าจัดเต็มแน่นอน มีอะไรสงสัยถามมาได้เลยนะ!`,
+                    `แหม คุณนี่เก่งจังเลยนะคะ ชวนคุยแต่เรื่องน่าสนใจตลอดเลย เล่าให้ฟ้าใสฟังอีกสิคะ ฟ้าใสตั้งใจฟังอยู่ค่า! 💖`
+                ];
+                return generalReplies[Math.floor(Math.random() * generalReplies.length)];
+            }
+        }
+
+        function escapeHtml(string) {
+            return string.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>

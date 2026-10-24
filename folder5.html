@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Final Accusation Terminal - The Shadow File</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-200 h-screen flex flex-col font-mono select-none overflow-hidden">
+    
+    <!-- Header หัวข้อระบบ -->
+    <div class="bg-slate-900 border-b border-slate-800 p-3 flex justify-between items-center">
+        <span class="text-xs font-bold text-red-400 tracking-wider">
+            <i class="fa-solid fa-handcuffs mr-2"></i>FINAL ACCUSATION SYSTEM // ระบบชี้ตัวคนร้ายขั้นเด็ดขาด
+        </span>
+        <span class="text-[10px] text-slate-400">อ้างอิงข้อมูลลับจาก U-rias Database</span>
+    </div>
+
+    <!-- ส่วนเนื้อหาหลัก -->
+    <div class="flex-1 flex flex-col p-5 space-y-4 overflow-hidden">
+        <!-- คำแนะนำ -->
+        <div class="text-center text-xs text-slate-400">
+            ลากรูปภาพผู้ต้องสงสัยจากแถบด้านล่างมาวางในช่องสี่เหลี่ยมตรงกลาง หรือคลิกเลือก แล้วกด<b>"ยืนยันการจับกุม"</b>เพื่อสรุปคดี
+        </div>
+
+        <!-- ช่องสี่เหลี่ยมตรงกลางสำหรับวางรูปคนร้าย -->
+        <div class="flex-1 flex flex-col items-center justify-center">
+            <div id="drop-zone" ondragover="allowDrop(event)" ondrop="dropSuspect(event)" class="w-64 h-64 border-2 border-dashed border-slate-700 hover:border-red-500 bg-slate-900/50 rounded-2xl flex flex-col items-center justify-center p-4 transition-all relative shadow-inner">
+                <div id="drop-content" class="flex flex-col items-center text-slate-500 space-y-2">
+                    <i class="fa-solid fa-user-secret text-4xl mb-1 text-slate-600 animate-pulse"></i>
+                    <span class="text-xs text-slate-400">ลากรูปคนร้ายมาวางที่นี่</span>
+                </div>
+            </div>
+
+            <!-- ปุ่มยืนยันจบเกม -->
+            <button onclick="confirmAccusation()" class="mt-6 px-8 py-3.5 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold text-xs rounded-xl shadow-[0_0_25px_rgba(239,68,68,0.4)] transition-all cursor-pointer transform hover:scale-105 active:scale-95">
+                <i class="fa-solid fa-gavel mr-2"></i>ยืนยันการจับกุมคนร้าย
+            </button>
+        </div>
+
+        <!-- แถบด้านล่าง: รายชื่อผู้ต้องสงสัยทั้งหมด -->
+        <div class="h-44 bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-col">
+            <div class="text-[11px] font-bold text-slate-400 mb-2 flex justify-between items-center px-1">
+                <span><i class="fa-solid fa-users mr-1.5 text-indigo-400"></i>รายชื่อผู้ต้องสงสัยทั้งหมด (30 คน)</span>
+                <span class="text-[9px] text-slate-500">ลากหรือคลิกเพื่อเลือกเป้าหมาย</span>
+            </div>
+            <div id="suspects-grid" class="flex-1 overflow-x-auto flex space-x-3 p-1 items-center scrollbar-thin">
+                <!-- ข้อมูลจะถูกเรนเดอร์อัตโนมัติจาก array ด้านล่าง -->
+            </div>
+        </div>
+    </div>
+<!-- Modal ผลลัพธ์การจบเกม (ชนะ / แพ้) -->
+    <div id="result-modal" class="hidden fixed inset-0 bg-black/95 flex flex-col items-center justify-center p-6 z-50 text-center">
+        <div id="result-box" class="border p-8 rounded-2xl max-w-md w-full space-y-4 shadow-2xl">
+            <div id="result-icon" class="text-5xl mb-2"></div>
+            <h2 id="result-title" class="text-lg font-bold">TITLE</h2>
+            <p id="result-desc" class="text-xs text-slate-300 leading-relaxed">DESC</p>
+            
+            <!-- ปุ่มกลับไปหน้าแรกของเว็บไซต์ (เช่น login.html หรือ index.html) -->
+            <button onclick="goToHome()" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer mt-4">
+                <i class="fa-solid fa-house mr-1.5"></i>กลับสู่หน้าแรก
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================================================
+        // 🎯 🛠️ จุดแก้ไขรูปภาพและข้อมูลผู้ต้องสงสัยทั้ง 30 คน
+        // คุณสามารถเปลี่ยนค่า img เป็นชื่อไฟล์รูปภาพของคุณได้อิสระ เช่น 'my_suspect1.png'
+        // คนร้ายตัวจริงที่ถูกต้องกำหนดไว้ที่ ID #12 (correctSuspectId = 12)
+        // ==========================================================================
+        const suspectsData = [
+            { id: 1, name: "สมชาย #01", img: "r.png" },
+            { id: 2, name: "พีท #02", img: "a.png" },
+            { id: 3, name: "นัท #03", img: "q.png" },
+            { id: 4, name: "ตั้ม #04", img: "s.png" },
+            { id: 5, name: "เจมส์ #05", img: "d.png" },
+            { id: 6, name: "โก้ #06", img: "f.png" },
+            { id: 7, name: "บาส #07", img: "z.png" },
+            { id: 8, name: "กาย #08", img: "x.png" },// 👈 ตัวจริง (ID 08)
+            { id: 9, name: "ดร.วิทยา #09", img: "y.png" },
+            { id: 10, name: "อาร์ม #10", img: "u.png" },
+            { id: 11, name: "เต้ #11", img: "i.png" },
+            { id: 12, name: "ภูมิ #12", img: "j.png" }, 
+            { id: 13, name: "ต้น #13", img: "n.png" },
+            { id: 14, name: "พี่เอก #14", img: "m.png" },
+            { id: 15, name: "โอ๊ต #15", img: "p.png" },
+            { id: 16, name: "กอล์ฟ #16", img: "e.png" },
+          
+        ];
+
+        let selectedSuspectId = null;
+        const correctSuspectId = 8; // กำหนดว่า ID ไหนคือคนร้ายที่ถูกต้อง (ชนะ)
+
+        // สร้างรายการผู้ต้องสงสัยลงในแถบด้านล่างอัตโนมัติจากข้อมูลด้านบน
+        const grid = document.getElementById('suspects-grid');
+        
+        suspectsData.forEach(suspect => {
+            const item = document.createElement('div');
+            item.className = "min-w-[80px] h-32 bg-slate-950 border border-slate-800 hover:border-red-500 rounded-lg flex flex-col items-center justify-center p-2 cursor-grab active:cursor-grabbing group transition-all relative flex-shrink-0";
+            item.draggable = true;
+            item.id = `suspect-${suspect.id}`;
+            
+            // รองรับระบบ Drag
+            item.ondragstart = (e) => {
+                e.dataTransfer.setData('text/plain', suspect.id);
+            };
+
+            // รองรับระบบ Click เลือก
+            item.onclick = () => {
+                setDroppedSuspect(suspect.id);
+            };
+
+            // นำรูปภาพและชื่อจาก Array มาแสดงผล พร้อมระบบสำรองถ้าหาไฟล์ไม่เจอ
+            item.innerHTML = `
+                <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-800 mb-2 border border-slate-700 group-hover:border-red-400">
+                    <img src="${suspect.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/100?text=No+Img'">
+                </div>
+                <span class="text-[10px] text-slate-300 font-bold">ID: #${String(suspect.id).padStart(2, '0')}</span>
+                <span class="text-[8px] text-slate-500 truncate w-full text-center">${suspect.name}</span>
+            `;
+            grid.appendChild(item);
+        });
+
+        function allowDrop(e) {
+            e.preventDefault();
+        }
+
+        function dropSuspect(e) {
+            e.preventDefault();
+            const id = e.dataTransfer.getData('text/plain');
+            if (id) {
+                setDroppedSuspect(parseInt(id));
+            }
+        }
+
+        function setDroppedSuspect(id) {
+            selectedSuspectId = parseInt(id);
+            const suspectObj = suspectsData.find(s => s.id === selectedSuspectId);
+            const dropContent = document.getElementById('drop-content');
+            
+            if (suspectObj) {
+                dropContent.innerHTML = `
+                    <div class="w-20 h-20 rounded-full overflow-hidden bg-slate-800 mb-2 border-2 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.5)]">
+                        <img src="${suspectObj.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/100?text=No+Img'">
+                    </div>
+                    <span class="text-xs font-bold text-white">ID: #${String(suspectObj.id).padStart(2, '0')} (${suspectObj.name})</span>
+                    <span class="text-[10px] text-red-400">เป้าหมายถูกเลือกแล้ว</span>
+                `;
+            }
+        }
+
+        function confirmAccusation() {
+            if (!selectedSuspectId) {
+                alert("กรุณาเลือกหรือลากรูปคนร้ายมาวางในช่องตรงกลางก่อนกดยืนยัน!");
+                return;
+            }
+
+            const modal = document.getElementById('result-modal');
+            const box = document.getElementById('result-box');
+            const icon = document.getElementById('result-icon');
+            const title = document.getElementById('result-title');
+            const desc = document.getElementById('result-desc');
+
+            modal.classList.remove('hidden');
+
+            // ตรวจสอบความถูกต้องกับข้อมูล U-rias (คนร้ายที่ถูกต้องคือ ID #12)
+            if (selectedSuspectId === correctSuspectId) {
+                // ชนะ (Victory)
+                box.className = "border border-emerald-500 bg-slate-900 p-8 rounded-2xl max-w-md w-full space-y-4 shadow-[0_0_50px_rgba(16,185,129,0.4)]";
+                icon.innerHTML = '<i class="fa-solid fa-trophy text-emerald-400"></i>';
+                title.className = "text-lg font-bold text-emerald-400";
+                title.innerText = "VICTORY // จับกุมคนร้ายสำเร็จ!";
+                desc.innerText = "ยอดเยี่ยมมาก! คุณวิเคราะห์เบาะแสจากระบบ U-rias และชี้ตัวผู้ต้องสงสัย ID: #12 ได้อย่างถูกต้องแม่นยำ ปิดคดีลับ The Shadow File ได้สำเร็จ!";
+            } else {
+                // แพ้ (Defeat)
+                box.className = "border border-red-500 bg-slate-900 p-8 rounded-2xl max-w-md w-full space-y-4 shadow-[0_0_50px_rgba(239,68,68,0.4)]";
+                icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-500"></i>';
+                title.className = "text-lg font-bold text-red-400";
+                title.innerText = "DEFEAT // จับกุมผิดคน / คนร้ายหนีรอด!";
+                desc.innerText = `คุณเลือกผู้ต้องสงสัย ID: #${String(selectedSuspectId).padStart(2, '0')} ซึ่งไม่ถูกต้อง! คนร้ายตัวจริงลอยนวลและระบบได้ทำลายหลักฐานทิ้งทั้งหมด ลองกลับไปตรวจสอบข้อมูลใน U-rias ใหม่อีกครั้ง`;
+            }
+        }
+
+// 🏠 ฟังก์ชันพาเด้งกลับไปหน้าแรกสุดของเว็บไซต์ (สามารถเปลี่ยนชื่อไฟล์ข้างในได้ตามต้องการ เช่น 'login.html' หรือ 'index.html')
+        function goToHome() {
+            // เช็กว่าอยู่ใน iframe หรือหน้าเดสก์ท็อปหลัก ให้สั่งเด้ง window แม่หรือหน้าหลักทั้งหมด
+            window.top.location.href = 'index.html'; 
+        }
+        
+    </script>
+</body>
+</html>

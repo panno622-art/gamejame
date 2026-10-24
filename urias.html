@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>U-rias Classified Gateway</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-black text-slate-200 min-h-screen font-mono p-6 select-none flex flex-col items-center justify-center">
+
+    <!-- ==========================================
+         SECTION 1: หน้า LOGIN (โทนดำตัดแดง)
+         ========================================== -->
+    <div id="login-section" class="w-full max-w-sm flex flex-col items-center space-y-6">
+        
+        <!-- โลโก้ & หัวข้อ -->
+        <div class="text-center space-y-2">
+            <div class="w-16 h-16 rounded-full border-2 border-red-600 flex items-center justify-center mx-auto shadow-[0_0_25px_rgba(220,38,38,0.5)] bg-red-950/30">
+                <i class="fa-solid fa-lock text-red-500 text-2xl animate-pulse"></i>
+            </div>
+            <h1 class="text-base font-bold text-red-500 tracking-widest uppercase">U-RIAS DATABASE</h1>
+            <p class="text-[10px] text-red-700 font-semibold tracking-wider">RESTRICTED ACCESS // LEVEL 4 ONLY</p>
+        </div>
+
+        <!-- ฟอร์มเข้าสู่ระบบ -->
+        <form onsubmit="handleLogin(event)" class="w-full space-y-4">
+            <div class="space-y-1">
+                <label class="text-[11px] text-red-400 font-bold tracking-wider">
+                    <i class="fa-solid fa-key mr-1.5 text-[10px]"></i>ENTER ACCESS CODE
+                </label>
+                <!-- ช่องกรอกรหัสผ่าน (ตั้งรหัสไว้คือ 1234 หรือเปลี่ยนได้ใน JS) -->
+                <input id="access-code" type="password" placeholder="••••••••" required 
+                       class="w-full bg-slate-950 border border-red-900/80 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 text-red-200 placeholder-red-950 px-4 py-2.5 rounded text-xs tracking-widest text-center transition-all">
+            </div>
+
+            <!-- ข้อความแจ้งเตือนถ้ารหัสผิด -->
+            <div id="error-msg" class="hidden text-[10px] text-red-500 text-center font-bold animate-bounce">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i>ACCESS DENIED: INVALID CODE
+            </div>
+
+            <!-- ปุ่มกดยืนยัน -->
+            <button type="submit" 
+                    class="w-full bg-red-600 hover:bg-red-500 text-black font-bold text-xs py-2.5 rounded shadow-[0_0_20px_rgba(220,38,38,0.4)] transition-all cursor-pointer">
+                AUTHENTICATE
+            </button>
+        </form>
+
+        <p class="text-[9px] text-slate-700 text-center">
+            WARNING: Unauthorized access attempts will be logged and reported.
+        </p>
+    </div>
+
+    <!-- ==========================================
+         SECTION 2: หน้าเนื้อหาหลัก (แสดงเมื่อ Login สำเร็จ)
+         ========================================== -->
+    <div id="content-section" class="hidden w-full max-w-xl flex-col items-center space-y-6">
+        
+        <!-- ส่วนหัวระบบ U-rias หลังซ่อน Login -->
+        <div class="w-full flex justify-between items-center border-b border-red-900/50 pb-3 mb-2">
+            <span class="text-xs font-bold text-red-500 tracking-wider">
+                <i class="fa-solid fa-shield-halved mr-2"></i>U-RIAS SECURE GATEWAY // DATABASE
+            </span>
+            <button onclick="logout()" class="text-[10px] text-red-400 hover:text-red-300 transition-colors cursor-pointer">
+                <i class="fa-solid fa-right-from-bracket mr-1"></i>LOGOUT
+            </button>
+        </div>
+
+        <!-- 🖼️ รูปภาพโปรไฟล์เป้าหมาย (อยู่ตรงกลางด้านบน) -->
+        <div class="w-36 h-36 rounded-full overflow-hidden border-2 border-red-600 shadow-[0_0_30px_rgba(220,38,38,0.4)] bg-slate-950 flex items-center justify-center">
+            <!-- 📌 เปลี่ยนชื่อไฟล์ 'profile_target.png' เป็นรูปของคุณ -->
+            <img src="x.png" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150/000000/ff0000?text=No+Image'">
+        </div>
+
+        <!-- ชื่อหรือหัวข้อหลัก -->
+        <div class="text-center space-y-1">
+            <h2 class="text-base font-bold text-white tracking-wide">กาย</h2>
+            <p class="text-xs text-red-500">ID: #8 // สถานะ: กำลังเฝ้าระวังขั้นสูงสุด</p>
+        </div>
+
+        <!-- 📄 รายละเอียดข้อมูลเสริมต่างๆ (จัดหน้าแบบเว็บปกติ ไม่มีกรอบ) -->
+        <div class="w-full text-left space-y-4 text-xs text-slate-300 leading-relaxed pt-2 border-t border-red-950">
+            <div>
+                <h4 class="text-red-400 font-bold mb-1"><i class="fa-solid fa-circle-info mr-1.5 text-[10px]"></i>ข้อมูลส่วนตัว (Personal Details)</h4>
+                <p class="text-slate-400 pl-4">
+                    ส่วงสูง 176 เซนติเมตร อายุ 21 ปี 
+                </p>
+            </div>
+
+            <div>
+                <h4 class="text-red-400 font-bold mb-1"><i class="fa-solid fa-timeline mr-1.5 text-[10px]"></i>ประวัติเหตุการณ์ (Timeline Activity)</h4>
+                <p class="text-slate-400 pl-4">
+                    - บันทึกการเคลื่อนไหวล่าสุดในระบบ<br>
+                    - จุดเชื่อมโยงกับหลักฐานในโฟลเดอร์อื่นๆ<br>
+                    - หมายเหตุเพิ่มเติมสำหรับการสืบสวน
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- สคริปต์จัดการการ Login -->
+    <script>
+        // รหัสผ่านสำหรับเข้า U-rias (ตั้งไว้เป็น 5112348907 เพื่อนรักเปลี่ยนเลขตรงนี้ได้เลย)
+        const CORRECT_CODE = "5112348907";
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const input = document.getElementById('access-code').value;
+            const errorMsg = document.getElementById('error-msg');
+
+            if (input === CORRECT_CODE) {
+                errorMsg.classList.add('hidden');
+                document.getElementById('login-section').classList.add('hidden');
+                
+                const content = document.getElementById('content-section');
+                content.classList.remove('hidden');
+                content.classList.add('flex');
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            document.getElementById('access-code').value = "";
+            document.getElementById('content-section').classList.add('hidden');
+            document.getElementById('content-section').classList.remove('flex');
+            document.getElementById('login-section').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Jing News Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-200 h-screen flex flex-col font-mono select-none overflow-hidden">
+    
+    <!-- Navigation Bar ด้านบน (ลบช่องค้นหาออกแล้ว) -->
+    <div class="bg-slate-900 border-b border-slate-800 p-3 flex justify-between items-center">
+        <div class="flex items-center space-x-4">
+            <span class="text-xs font-bold text-indigo-400 tracking-wider"><i class="fa-solid fa-newspaper mr-1.5"></i>JING NEWS PORTAL</span>
+            <div class="flex space-x-2 text-xs">
+                <button onclick="filterCategory('all')" class="nav-btn px-3 py-1 rounded bg-indigo-600 text-white font-bold transition-colors cursor-pointer">ทั้งหมด</button>
+                <button onclick="filterCategory('investigation')" class="nav-btn px-3 py-1 rounded text-slate-400 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer">คดีสืบสวน</button>
+                <button onclick="filterCategory('serious')" class="nav-btn px-3 py-1 rounded text-slate-400 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer">คดีร้ายแรง</button>
+                <button onclick="filterCategory('theft')" class="nav-btn px-3 py-1 rounded text-slate-400 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer">คดีขโมย</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- พื้นที่แสดงรายการข่าว -->
+    <div id="news-content" class="flex-1 p-5 overflow-y-auto space-y-3">
+        <!-- ข่าวจะถูกเรนเดอร์อัตโนมัติผ่าน JavaScript -->
+    </div>
+
+    <!-- Modal แสดงรายละเอียดเนื้อหาข่าวเต็มๆ เมื่อคลิก -->
+    <div id="news-modal" class="hidden absolute inset-0 bg-black/90 p-6 flex flex-col justify-center items-center z-50">
+        <div class="border border-indigo-500/50 bg-slate-900 p-6 rounded-xl max-w-lg w-full space-y-4 shadow-[0_0_40px_rgba(99,102,241,0.3)] max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <span id="modal-tag" class="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded">TAG</span>
+                <span id="modal-date" class="text-[10px] text-slate-400">DATE</span>
+            </div>
+            <h3 id="modal-title" class="text-sm font-bold text-white">TITLE</h3>
+            <p id="modal-desc" class="text-xs text-slate-300 leading-relaxed whitespace-pre-line">DESCRIPTION</p>
+            <button onclick="closeNewsModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 text-xs rounded transition-colors cursor-pointer">ปิดหน้าต่าง</button>
+        </div>
+    </div>
+
+    <script>
+        const newsList = [
+            {
+                id: 1,
+                category: 'theft',
+                tag: 'คดีขโมย',
+                title: 'คดีลักทรัพย์ตู้เซฟนิรภัยบริษัทเครือข่ายยักษ์ใหญ่ มูลค่าความเสียหายกว่า 50 ล้านบาท',
+                date: '24 ต.ค. 2026',
+                shortDesc: 'คนร้ายแฝงตัวเข้าไปในอาคารช่วงกลางคืนและเจาะรหัสตู้เซฟห้องการเงิน กวาดเอกสารลับและเงินสดไปเกลี้ยง',
+                fullDesc: 'เกิดเหตุอุกฉกรรจ์สะเทือนวงการธุรกิจ เมื่อกล้องวงจรปิดจับภาพคนร้ายสวมหน้ากากลอบเข้าสู่ชั้นผู้บริหารของบริษัทเครือข่ายยักษ์ใหญ่ สามารถเจาะระบบตู้เซฟนิรภัยระดับสูงได้ภายในเวลาไม่ถึง 10 นาที กวาดเงินสดและแฟลชไดรฟ์บรรจุข้อมูลทางการเงินลับสุดยอดมูลค่ารวมกว่า 50 ล้านบาท ตำรวจเร่งแกะรอยลายนิ้วมือแฝงและเส้นทางการเงินที่ถูกโอนออกทันทีหลังก่อเหตุ'
+            },
+            {
+                id: 2,
+                category: 'serious',
+                tag: 'คดีร้ายแรง',
+                title: 'คดีฆาตกรรมอำพรางในห้องเซิร์ฟเวอร์ชั้นใต้ดิน อาคารสำนักงานกลางเมือง',
+                date: '23 ต.ค. 2026',
+                shortDesc: 'พบศพพนักงานไอทีระดับอาวุโสเสียชีวิตปริศนาคาสายเคเบิล พร้อมร่องรอยการลบข้อมูลเซิร์ฟเวอร์ครั้งใหญ่',
+                fullDesc: 'เจ้าหน้าที่ตำรวจและหน่วยพิสูจน์หลักฐานเข้าตรวจสอบที่เกิดเหตุ หลังได้รับแจ้งพบศพ นายธนา พนักงานดูแลระบบเซิร์ฟเวอร์อาวุโส เสียชีวิตอย่างมีเงื่อนงำภายในห้องควบคุมความเย็นชั้นใต้ดิน สภาพศพมีร่องรอยถูกช็อตด้วยกระแสไฟฟ้าแรงสูง ตรวจสอบระบบพบว่าฮาร์ดดิสก์หลักถูกลบข้อมูลเกลี้ยงในช่วงเวลาไล่เลี่ยกับการเสียชีวิต เชื่อเป็นการฆาตกรรมอำพรางเพื่อปิดปากคดีทุจริต'
+            },
+            {
+                id: 3,
+                category: 'investigation',
+                tag: 'คดีสืบสวน',
+                title: 'แกะรอยเครือข่ายแฮกเกอร์เงา The Shadow ปล่อยมัลแวร์เรียกค่าไถ่ระบบราชการ',
+                date: '22 ต.ค. 2026',
+                shortDesc: 'ชุดสืบสวนไซเบอร์พบเบาะแสเซิร์ฟเวอร์ปลายทางเชื่อมโยงกับกลุ่มอาชญากรข้ามชาติ',
+                fullDesc: 'กองบังคับการปราบปรามการกระทำความผิดเกี่ยวกับอาชญากรรมทางเทคโนโลยี (บก.ปอท.) ร่วมกับทีมสืบสวนพิเศษ แกะรอยสัญญานอินเทอร์เน็ตที่ใช้ปล่อยมัลแวร์ล็อกระบบฐานข้อมูลของหน่วยงานรัฐ พบร่องรอยการใช้รหัสผ่านชุดเดียวกับกลุ่มแฮกเกอร์เงาในอดีต เจ้าหน้าที่กำลังเร่งวิเคราะห์ซอร์สโค้ดเพื่อหาตัวการใหญ่ที่อยู่เบื้องหลังการโจมตีครั้งนี้'
+            },
+            {
+                id: 4,
+                category: 'theft',
+                tag: 'คดีขโมย',
+                title: 'โจรแสบงัดห้องแล็บ ขโมยฮาร์ดดิสก์ต้นแบบโครงการวิจัย AI ลับ',
+                date: '21 ต.ค. 2026',
+                shortDesc: 'งานวิจัยปัญญาประดิษฐ์มูลค่าหลายร้อยล้านถูกขโมยหายอย่างไร้ร่องรอย รปภ.จำเหตุการณ์ไม่ได้',
+                fullDesc: 'เกิดเหตุโจรกรรมครั้งประวัติศาสตร์ที่สถาบันวิจัยเทคโนโลยีขั้นสูง ฮาร์ดดิสก์บรรจุอัลกอริทึมต้นแบบโครงการ AI อัจฉริยะถูกขโมยไปจากห้องนิรภัยที่ปิดตายอย่างแน่นหนา สิ่งที่น่าแปลกใจคือระบบสัญญาณกันขโมยและกล้องวงจรปิดไม่ทำงานในช่วงเวลานั้น เหมือนมีผู้มีอภิสิทธิ์ลบไฟล์บันทึกภาพออกไปก่อนหน้า ทางการตั้งรางวัลนำจับกุมตัวผู้บงการสูงสุด'
+            },
+            {
+                id: 5,
+                category: 'serious',
+                tag: 'คดีร้ายแรง',
+                title: 'คดีลอบวางเพลิงอาคารเก็บเอกสารคดีคอร์รัปชัน องค์กรตรวจสอบภาครัฐ',
+                date: '20 ต.ค. 2026',
+                shortDesc: 'เพลิงไหม้เผาผลาญเอกสารหลักฐานคดีทุจริตหมื่นล้านวอดวาย เจ้าหน้าที่พบสารเร่งปฏิกิริยา',
+                fullDesc: 'เกิดเหตุเพลิงไหม้อย่างรุนแรง ณ อาคารเก็บเอกสารสำนวนคดีทุจริตโครงการก่อสร้างขนาดใหญ่ เจ้าหน้าที่ดับเพลิงใช้เวลากว่า 4 ชั่วโมงจึงควบคุมเพลิงไว้ได้ ผลตรวจสอบจากกองพิสูจน์หลักฐานยืนยันชัดเจนว่าเป็นการลอบวางเพลิงโดยใช้สารเคมีเร่งไฟ เพื่อทำลายหลักฐานสำคัญก่อนที่ศาลจะนัดไต่สวนคดีในสัปดาห์หน้า'
+            },
+            {
+                id: 6,
+                category: 'investigation',
+                tag: 'คดีสืบสวน',
+                title: 'แฉเครือข่ายฟอกเงินข้ามชาติผ่านแพลตฟอร์มเกมออนไลน์และสินทรัพย์ดิจิทัล',
+                date: '19 ต.ค. 2026',
+                shortDesc: 'ปปง. สนธิกำลังตรวจค้นเป้าหมาย 15 จุดทั่วประเทศ หลังพบนายทุนใหญ่ใช้เกมออนไลน์ฟอกเงิน',
+                fullDesc: 'ปฏิบัติการกวาดล้างเครือข่ายฟอกเงินครั้งใหญ่ภายใต้ความร่วมมือระหว่างประเทศ เจ้าหน้าที่พบว่ากลุ่มอาชญากรใช้ระบบซื้อขายไอเทมในเกมออนไลน์และคริปโตเคอร์เรนซีในการถ่ายเทเงินผิดกฎหมาย ซ่อนเร้นเส้นทางการเงินจากธุรกิจสีเทาอย่างแนบเนียน ยึดทรัพย์สินรวมมูลค่ากว่า 300 ล้านบาท'
+            },
+            {
+                id: 7,
+                category: 'serious',
+                tag: 'คดีร้ายแรง',
+                title: 'คดีแบล็กเมลและกรรโชกทรัพย์ผู้บริหารบริษัทเทคโนโลยีชื่อดัง',
+                date: '18 ต.ค. 2026',
+                shortDesc: 'คนร้ายส่งคลิปวิดีโอลับขู่รีดไถเงิน 20 ล้านบาท แลกกับการไม่เปิดเผยความลับบริษัท',
+                fullDesc: 'ผู้บริหารระดับสูงของบริษัทพัฒนาซอฟต์แวร์แห่งหนึ่งเข้าแจ้งความต่อกองปราบ หลังได้รับข้อความข่มขู่เรียกเงินสดจำนวน 20 ล้านบาท แลกกับการไม่ปล่อยคลิปวิดีโอและข้อมูลความลับทางธุรกิจออกสู่สาธารณะ ชุดสืบสวนกำลังวางแผนซ้อนแผนจับกุมคนร้ายขณะนัดหมายส่งมอบเงินสดตามพิกัดลับ'
+            },
+            {
+                id: 8,
+                category: 'theft',
+                tag: 'คดีขโมย',
+                title: 'โจรกรรมอัญมณีโบราณและแฟลชไดรฟ์หลักฐานคดีฆาตกรรมลูกโซ่',
+                date: '17 ต.ค. 2026',
+                shortDesc: 'คนร้ายมืออาชีพฉกของกลางจากห้องเก็บของกลางสถานีตำรวจกลางดึก ไร้ร่องรอยการงัดแงะ',
+                fullDesc: 'เกิดเหตุการณ์เหลือเชื่อเมื่อห้องเก็บของกลางคดีสำคัญถูกงัดแงะอย่างแนบเนียน คนร้ายเจาะจงขโมยเพียงอัญมณีโบราณราคาแพงและแฟลชไดรฟ์บันทึกเสียงพยานปากเอกในคดีฆาตกรรมต่อเนื่อง โดยไม่แตะต้องทรัพย์สินมีค่าชิ้นอื่นเลย ทางการสั่งพักงานเจ้าหน้าที่เวรยามทั้งหมดเพื่อสอบสวนวินัยร้ายแรง'
+            },
+            {
+                id: 9,
+                category: 'investigation',
+                tag: 'คดีสืบสวน',
+                title: 'ทลายรังลับแก๊งสอดแนม ลอบติดตั้งอุปกรณ์ดักฟังในห้องประชุมคณะรัฐมนตรี',
+                date: '16 ต.ค. 2026',
+                shortDesc: 'เจ้าหน้าที่ความมั่นคงตรวจพบไมโครโฟนจิ๋วซ่อนใต้โต๊ะประชุมลับ ส่งสัญญาณข้อมูลออกนอกประเทศ',
+                fullDesc: 'หน่วยข่าวกรองและความมั่นคงแห่งชาติเข้าตรวจค้นห้องประชุมลับหลังพบความผิดปกติของสัญญาณคลื่นวิทยุ ตรวจพบอุปกรณ์ดักฟังและกล้องจิ๋วความละเอียดสูงถูกฝังไว้ใต้โต๊ะประชุมอย่างแนบเนียน ข้อมูลการประชุมลับด้านความมั่นคงถูกส่งต่อไปยังเซิร์ฟเวอร์ต่างประเทศอย่างต่อเนื่อง เร่งสาวถึงสายลับหนอนกระเทียมในองค์กร'
+            },
+            {
+                id: 10,
+                category: 'serious',
+                tag: 'ฟังฉันก่อน',
+                title: 'ถ้าเห็นก็ฟังฉันก่อน',
+                date: '15 ต.ค. 2026',
+                shortDesc: 'บล็อกที่13มันโม้มันตอแหล รหัสจริงๆมี7ตัวเลขนะ',
+                fullDesc: 'ขอให้มีความสุขกับการเข้ารหัสนะ รหัสคือ 9825378'
+
+
+
+
+
+
+                
+            },{
+                id: 11,
+                category: 'theft',
+                tag: 'คดีhackingข้อมูล',
+                title: 'คดีhackingบริษัทเครือข่ายยักษ์ใหญ่ มูลค่าความเสียหายกว่า 50 ล้านบาท',
+                date: '25 ส.ค. 2025',
+                shortDesc: 'คนร้ายแฝงตัวเข้าไปในอาคารช่วงกลางคืนและเจาะรหัส กวาดเอกสารลับไปเกลี้ยง',
+                fullDesc: 'เกิดเหตุอุกฉกรรจ์สะเทือนวงการธุรกิจ เมื่อกล้องวงจรปิดจับภาพคนร้ายสวมเสื้อฮู๊ดลอบเข้าสู่ชั้นผู้บริหารของบริษัทเครือข่ายยักษ์ใหญ่ สามารถเจาะระบบระดับสูงได้ภายในเวลาไม่ถึง 10 นาที กวาดแฟลชไดรฟ์บรรจุข้อมูลทางการเงินลับสุดยอดมูลค่ารวมกว่า 50 ล้านบาท ตำรวจเร่งแกะรอยอยู่'
+            },{
+                id: 12,
+                category: 'theft',
+                tag: 'คดีเด็ด',
+                title: 'คดีชู้สาว เพื่อนนายกัสมีแฟนเป็นยาง แล้วเอาฟันเจาะยางจนยางระเบิดที่ประเทศไทย',
+                date: '24 ต.ค. 2026',
+                shortDesc: 'ประเทศนั้นล่มสลายจากการระเบิดของยางทำให้ประเทศนั้นชิบหาย',
+                fullDesc: 'แล้วยางก็ได้ถูกสั่งแบนห้ามใช้เพราะเดี่ยวเก็ตเป็นพิษภัยต่อสังคม'
+            },{
+                id: 13,
+                category: 'theft',
+                tag: 'รหัสผ่าน',
+                title: 'รหัสผ่านเข้า U-rias',
+                date: '24 ต.ค. 2026',
+                shortDesc: 'รหัสคือ 8434395095',
+                fullDesc: 'นั้นน่ะรหัสปลอม รหัสมี 5 ตัวนะ'
+            },
+    
+        ];
+
+        function filterCategory(cat) {
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(btn => {
+                btn.className = "nav-btn px-3 py-1 rounded text-slate-400 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer";
+                if(btn.getAttribute('onclick').includes(cat)) {
+                    btn.className = "nav-btn px-3 py-1 rounded bg-indigo-600 text-white font-bold transition-colors cursor-pointer";
+                }
+            });
+
+            if(cat === 'all') {
+                renderNews(newsList);
+            } else {
+                const filtered = newsList.filter(item => item.category === cat);
+                renderNews(filtered);
+            }
+        }
+
+        function renderNews(list) {
+            const container = document.getElementById('news-content');
+            container.innerHTML = list.map(item => `
+                <div onclick="openNewsDetail(${item.id})" class="bg-slate-900/80 border border-slate-800 hover:border-indigo-500/50 p-4 rounded-lg space-y-2 cursor-pointer group transition-all">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded">${item.tag}</span>
+                        <span class="text-[10px] text-slate-500">${item.date}</span>
+                    </div>
+                    <h4 class="text-xs font-bold text-white group-hover:text-indigo-400 transition-colors">${item.title}</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">${item.shortDesc}</p>
+                </div>
+            `).join('');
+        }
+
+        function openNewsDetail(id) {
+            const item = newsList.find(n => n.id === id);
+            if(!item) return;
+
+            document.getElementById('modal-tag').innerText = item.tag;
+            document.getElementById('modal-date').innerText = item.date;
+            document.getElementById('modal-title').innerText = item.title;
+            document.getElementById('modal-desc').innerText = item.fullDesc;
+
+            document.getElementById('news-modal').classList.remove('hidden');
+        }
+
+        function closeNewsModal() {
+            document.getElementById('news-modal').classList.add('hidden');
+        }
+
+        // เริ่มต้นแสดงข่าวทั้งหมด
+        renderNews(newsList);
+    </script>
+</body>
+</html>
